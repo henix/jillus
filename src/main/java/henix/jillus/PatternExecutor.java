@@ -180,7 +180,7 @@ public class PatternExecutor {
 			}
 			return execute(c.actual);
 		} else {
-			throw new IllegalArgumentException("Unknown Capture type: " + e.getClass().getName());
+			throw new IllegalArgumentException("Unknown Capturer type: " + e.getClass().getName());
 		}
 	}
 
