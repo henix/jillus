@@ -1,4 +1,4 @@
-* jillus
+# jillus
 
 A type-safe parser combinator in Java
 
