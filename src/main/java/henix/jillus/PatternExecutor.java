@@ -34,13 +34,21 @@ public class PatternExecutor {
 		this.src = src;
 	}
 
-	public boolean match(PegPattern e) {
+	private void error(String desc) {
+		final String current = src.canGet() ? src.gets(Math.min(10, src.available())) : "<eof>";
+		throw new JillusSyntaxException("Expect " + desc + ", but saw: " + current);
+	}
+
+	private boolean match(PegPattern e, boolean mustSuccess) {
 		if (e instanceof EmptyString) {
 			return true;
 		} else if (e instanceof AnyChar) {
 			if (src.canGet()) {
 				src.consume();
 				return true;
+			}
+			if (mustSuccess) {
+				error("any char");
 			}
 			return false;
 		} else if (e instanceof CharInRange) {
@@ -52,6 +60,9 @@ public class PatternExecutor {
 					return true;
 				}
 			}
+			if (mustSuccess) {
+				error("a char in [" + patt.from + "-" + patt.to + "]");
+			}
 			return false;
 		} else if (e instanceof CharInSet) {
 			final CharInSet patt = (CharInSet)e;
@@ -62,6 +73,9 @@ public class PatternExecutor {
 					return true;
 				}
 			}
+			if (mustSuccess) {
+				error("a char in [" + patt.str + "]");
+			}
 			return false;
 		} else if (e instanceof Literal) {
 			final Literal patt = (Literal)e;
@@ -71,17 +85,20 @@ public class PatternExecutor {
 					return true;
 				}
 			}
+			if (mustSuccess) {
+				error("literal " + patt.str);
+			}
 			return false;
 		} else if (e instanceof Optional) {
 			final Optional patt = (Optional)e;
-			match(patt.e);
+			match(patt.e, false);
 			return true;
 		} else if (e instanceof IfNotMatch) {
 			final IfNotMatch patt = (IfNotMatch)e;
 			final Mark mark = src.mark();
-			if (!match(patt.cond)) {
+			if (!match(patt.cond, false)) {
 				src.cancel(mark);
-				return match(patt.e);
+				return match(patt.e, mustSuccess);
 			}
 			src.goback(mark);
 			return false;
@@ -89,7 +106,7 @@ public class PatternExecutor {
 			final Sequence patt = (Sequence)e;
 			final Mark mark = src.mark();
 			for (PegPattern subpatt : patt.patts) {
-				if (!match(subpatt)) {
+				if (!match(subpatt, mustSuccess)) {
 					src.goback(mark);
 					return false;
 				}
@@ -98,8 +115,16 @@ public class PatternExecutor {
 			return true;
 		} else if (e instanceof OrderChoice) {
 			final OrderChoice patt = (OrderChoice)e;
-			for (PegPattern subpatt : patt.patts) {
-				if (match(subpatt)) {
+			int i = 0;
+			for (; i < patt.patts.length - 1; i++) {
+				final PegPattern subpatt = patt.patts[i];
+				if (match(subpatt, false)) {
+					return true;
+				}
+			}
+			for (; i < patt.patts.length; i++) {
+				final PegPattern subpatt = patt.patts[i];
+				if (match(subpatt, mustSuccess)) {
 					return true;
 				}
 			}
@@ -108,12 +133,12 @@ public class PatternExecutor {
 			final AtLeast patt = (AtLeast)e;
 			final Mark mark = src.mark();
 			for (int i = 0; i < patt.n; i++) {
-				if (!match(patt.e)) {
+				if (!match(patt.e, mustSuccess)) {
 					src.goback(mark);
 					return false;
 				}
 			}
-			while (match(patt.e)) {
+			while (match(patt.e, false)) {
 				;
 			}
 			src.cancel(mark);
@@ -123,17 +148,21 @@ public class PatternExecutor {
 			if (patt.actual == null) {
 				throw new IllegalArgumentException("NonTerminal uninitialized, call set() before use it");
 			}
-			return match(patt.actual);
+			return match(patt.actual, mustSuccess);
 		} else {
 			throw new IllegalArgumentException("Unknown PegPattern type: " + e.getClass().getName());
 		}
 	}
 
-	public <E> E execute(Capturer<E> e) {
+	public boolean match(PegPattern e) {
+		return match(e, true);
+	}
+
+	private <E> E execute(Capturer<E> e, boolean mustSuccess) {
 		if (e instanceof AtomicCapturer<?>) {
 			final AtomicCapturer<E> c = (AtomicCapturer<E>)e;
 			final Mark mark = src.mark();
-			if (match(c.e)) {
+			if (match(c.e, mustSuccess)) {
 				return c.valueCreator.create(src.tillNow(mark));
 			}
 			src.cancel(mark);
@@ -142,16 +171,16 @@ public class PatternExecutor {
 			final PassingCapturer<E> c = (PassingCapturer<E>)e;
 			final Mark mark = src.mark();
 			E ret = null;
-			if (c.before != null && !match(c.before)) {
+			if (c.before != null && !match(c.before, mustSuccess)) {
 				src.goback(mark);
 				return null;
 			}
-			ret = execute(c.e);
+			ret = execute(c.e, mustSuccess);
 			if (ret == null) {
 				src.goback(mark);
 				return null;
 			}
-			if (c.after != null && !match(c.after)) {
+			if (c.after != null && !match(c.after, mustSuccess)) {
 				src.goback(mark);
 				return null;
 			}
@@ -160,14 +189,23 @@ public class PatternExecutor {
 		} else if (e instanceof CompoundCapturer<?>) {
 			final CompoundCapturer<E> c = (CompoundCapturer<E>)e;
 			final E newObj = c.recordCreator.create();
-			if (execute(c.a, newObj)) {
+			if (execute(c.a, newObj, mustSuccess)) {
 				return newObj;
 			}
 			return null;
 		} else if (e instanceof OrderChoiceCapturer<?>) {
 			final OrderChoiceCapturer<E> c = (OrderChoiceCapturer<E>)e;
-			for (Capturer<? extends E> patt : c.alternatives) {
-				final E ret = execute(patt);
+			int i = 0;
+			for (; i < c.alternatives.length - 1; i++) {
+				final Capturer<? extends E> patt = c.alternatives[i];
+				final E ret = execute(patt, false);
+				if (ret != null) {
+					return ret;
+				}
+			}
+			for (; i < c.alternatives.length; i++) {
+				final Capturer<? extends E> patt = c.alternatives[i];
+				final E ret = execute(patt, mustSuccess);
 				if (ret != null) {
 					return ret;
 				}
@@ -178,19 +216,23 @@ public class PatternExecutor {
 			if (c.actual == null) {
 				throw new IllegalArgumentException("NonTerminalCapturer uninitialized, call set() before use it");
 			}
-			return execute(c.actual);
+			return execute(c.actual, mustSuccess);
 		} else {
 			throw new IllegalArgumentException("Unknown Capturer type: " + e.getClass().getName());
 		}
 	}
 
-	private <E> boolean execute(Attacher<E> e, E parentObj) {
+	public <E> E execute(Capturer<E> e) {
+		return execute(e, true);
+	}
+
+	private <E> boolean execute(Attacher<E> e, E parentObj, boolean mustSuccess) {
 		if (e instanceof NothingAttacher) {
 			final NothingAttacher a = (NothingAttacher)e;
-			return match(a.e);
+			return match(a.e, mustSuccess);
 		} else if (e instanceof CaptureAttacher<?, ?>) {
 			final CaptureAttacher<E, Object> a = (CaptureAttacher<E, Object>)e;
-			final Object inner = execute(a.c);
+			final Object inner = execute(a.c, mustSuccess);
 			if (inner != null) {
 				a.fieldSetter.setValue(parentObj, inner);
 				return true;
@@ -200,7 +242,7 @@ public class PatternExecutor {
 			final SequenceAttacher<E> a = (SequenceAttacher<E>)e;
 			final Mark mark = src.mark();
 			for (Attacher<? super E> attacher : a.attachers) {
-				if (!execute(attacher, parentObj)) {
+				if (!execute(attacher, parentObj, mustSuccess)) {
 					src.goback(mark);
 					return false;
 				}
@@ -209,8 +251,16 @@ public class PatternExecutor {
 			return true;
 		} else if (e instanceof OrderChoiceAttacher<?>) {
 			final OrderChoiceAttacher<E> a = (OrderChoiceAttacher<E>)e;
-			for (Attacher<? super E> attacher : a.attachers) {
-				if (execute(attacher, parentObj)) {
+			int i = 0;
+			for (; i < a.attachers.length - 1; i++) {
+				final Attacher<? super E> attacher = a.attachers[i];
+				if (execute(attacher, parentObj, false)) {
+					return true;
+				}
+			}
+			for (; i < a.attachers.length; i++) {
+				final Attacher<? super E> attacher = a.attachers[i];
+				if (execute(attacher, parentObj, mustSuccess)) {
 					return true;
 				}
 			}
@@ -219,12 +269,12 @@ public class PatternExecutor {
 			final AtLeastAttacher<E> a = (AtLeastAttacher<E>)e;
 			final Mark mark = src.mark();
 			for (int i = 0; i < a.n; i++) {
-				if (!execute(a.e, parentObj)) {
+				if (!execute(a.e, parentObj, mustSuccess)) {
 					src.goback(mark);
 					return false;
 				}
 			}
-			while (execute(a.e, parentObj)) {
+			while (execute(a.e, parentObj, false)) {
 				;
 			}
 			src.cancel(mark);

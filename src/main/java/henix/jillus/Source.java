@@ -4,6 +4,7 @@ public interface Source {
 	// read
 	public boolean canGet();
 	public boolean canGet(int len);
+	public int available();
 	public char getchar();
 	public String gets(int len);
 

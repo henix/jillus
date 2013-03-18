@@ -3,11 +3,13 @@ package henix.jillus.test;
 import static henix.jillus.Pegs.*;
 
 import henix.jillus.Capturer;
+import henix.jillus.JillusSyntaxException;
 import henix.jillus.PatternExecutor;
 import henix.jillus.PegPattern;
 import henix.jillus.StringSource;
 import henix.jillus.ValueCreator;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -45,5 +47,16 @@ public class SimpleDateTest {
 		Assert.assertEquals(3001, result.year);
 		Assert.assertEquals(4, result.month);
 		Assert.assertEquals(1, result.day);
+	}
+
+	@Test
+	public void error() {
+		final PatternExecutor executor = new PatternExecutor(new StringSource("3001+4-1"));
+		try {
+			final MyDate result = executor.execute(mydate);
+			Assert.fail("Didn't throw exception");
+		} catch (JillusSyntaxException e) {
+			Assert.assertThat(e.getMessage(), CoreMatchers.containsString("-"));
+		}
 	}
 }

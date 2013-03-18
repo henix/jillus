@@ -29,6 +29,10 @@ public class StringSource implements Source {
 		return pos + len <= endpos;
 	}
 
+	public int available() {
+		return endpos - pos;
+	}
+
 	public char getchar() {
 		return input.charAt(pos);
 	}
