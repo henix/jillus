@@ -15,7 +15,6 @@ import henix.jillus.pegs.pattern.AnyChar;
 import henix.jillus.pegs.pattern.AtLeast;
 import henix.jillus.pegs.pattern.CharInRange;
 import henix.jillus.pegs.pattern.CharInSet;
-import henix.jillus.pegs.pattern.EmptyString;
 import henix.jillus.pegs.pattern.IfNotMatch;
 import henix.jillus.pegs.pattern.Literal;
 import henix.jillus.pegs.pattern.NonTerminal;
@@ -40,9 +39,7 @@ public class PatternExecutor {
 	}
 
 	private boolean match(PegPattern e, boolean mustSuccess) {
-		if (e instanceof EmptyString) {
-			return true;
-		} else if (e instanceof AnyChar) {
+		if (e instanceof AnyChar) {
 			if (src.canGet()) {
 				src.consume();
 				return true;

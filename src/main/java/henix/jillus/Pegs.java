@@ -25,15 +25,11 @@ public class Pegs {
 		return new CharInSet(s);
 	}
 
-	public static PegPattern emptyString() {
-		return EmptyString.instance;
-	}
-
 	/**
 	 * Match end of input, like "-1" in lpeg  
 	 */
 	public static PegPattern eof() {
-		return ifNotMatch(anyChar(), emptyString());
+		return ifNotMatch(anyChar(), new Literal(""));
 	}
 
 	/* ## IfNotMatch */
