@@ -15,7 +15,7 @@ import henix.jillus.pegs.pattern.AnyChar;
 import henix.jillus.pegs.pattern.AtLeast;
 import henix.jillus.pegs.pattern.CharInRange;
 import henix.jillus.pegs.pattern.CharInSet;
-import henix.jillus.pegs.pattern.IfNotMatch;
+import henix.jillus.pegs.pattern.NotPredict;
 import henix.jillus.pegs.pattern.Literal;
 import henix.jillus.pegs.pattern.NonTerminal;
 import henix.jillus.pegs.pattern.Optional;
@@ -90,12 +90,12 @@ public class PatternExecutor {
 			final Optional patt = (Optional)e;
 			match(patt.e, false);
 			return true;
-		} else if (e instanceof IfNotMatch) {
-			final IfNotMatch patt = (IfNotMatch)e;
+		} else if (e instanceof NotPredict) {
+			final NotPredict patt = (NotPredict)e;
 			final Mark mark = src.mark();
-			if (!match(patt.cond, false)) {
+			if (!match(patt.e, false)) {
 				src.cancel(mark);
-				return match(patt.e, mustSuccess);
+				return true;
 			}
 			src.goback(mark);
 			return false;
