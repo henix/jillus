@@ -32,10 +32,20 @@ public class Pegs {
 		return ifNotMatch(anyChar(), new Literal(""));
 	}
 
+	/* ## notFollowedBy */
+
+	public static PegPattern notFollowedBy(PegPattern e) {
+		return new NotPredict(e);
+	}
+
+	public static PegPattern notFollowedBy(String s) {
+		return new NotPredict(new Literal(s));
+	}
+
 	/* ## IfNotMatch */
 
 	public static PegPattern ifNotMatch(PegPattern e1, PegPattern e2) {
-		return new IfNotMatch(e1, e2);
+		return sequence(new NotPredict(e1), e2);
 	}
 
 	public static PegPattern ifNotMatch(String s1, PegPattern e2) {
