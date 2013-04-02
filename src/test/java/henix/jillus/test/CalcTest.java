@@ -95,7 +95,7 @@ public class CalcTest {
 	}
 
 	// allow spaces at start and end of input
-	static final Capturer<BinaryExpr> all = passCapture(spaces, AddExpr, sequence(spaces, eof()));
+	static final Capturer<BinaryExpr> all = passCapture(spaces, AddExpr, sequence(spaces, Pegs.eof));
 
 	static int eval(Expr expr) {
 		if (expr instanceof IntLiteral) {

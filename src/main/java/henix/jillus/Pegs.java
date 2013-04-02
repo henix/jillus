@@ -9,6 +9,19 @@ import henix.jillus.utils.*;
 
 public class Pegs {
 
+	/* # Common Patterns */
+
+	/**
+	 * Match end of input, like "-1" in lpeg
+	 */
+	public static PegPattern eof = notFollowedBy(anyChar());
+
+	public static PegPattern upper = charInRange('A', 'Z');
+	public static PegPattern lower = charInRange('a', 'b');
+	public static PegPattern letter = orderChoice(lower, upper);
+	public static PegPattern digit = charInRange('0', '9');
+	public static PegPattern alphaNum = orderChoice(letter, digit);
+
 	/* # Patterns */
 
 	/* ## Atomics */
@@ -23,13 +36,6 @@ public class Pegs {
 
 	public static PegPattern charInSet(String s) {
 		return new CharInSet(s);
-	}
-
-	/**
-	 * Match end of input, like "-1" in lpeg  
-	 */
-	public static PegPattern eof() {
-		return ifNotMatch(anyChar(), new Literal(""));
 	}
 
 	/* ## notFollowedBy */
