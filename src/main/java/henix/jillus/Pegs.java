@@ -17,7 +17,7 @@ public class Pegs {
 	public static PegPattern eof = notFollowedBy(anyChar());
 
 	public static PegPattern upper = charInRange('A', 'Z');
-	public static PegPattern lower = charInRange('a', 'b');
+	public static PegPattern lower = charInRange('a', 'z');
 	public static PegPattern letter = orderChoice(lower, upper);
 	public static PegPattern digit = charInRange('0', '9');
 	public static PegPattern alphaNum = orderChoice(letter, digit);
