@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>henix</groupId>
-	<artifactId>jillus-interpret</artifactId>
+	<artifactId>jillus</artifactId>
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
-	<name>jillus-interpret</name>
-	<url>https://github.com/henix/jillus-interpret</url>
+	<name>jillus</name>
+	<url>https://github.com/henix/jillus</url>
 
 	<dependencies>
 		<dependency>
@@ -21,7 +21,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>jillus-interpret</finalName>
+		<finalName>jillus</finalName>
 
 		<plugins>
 			<plugin>
