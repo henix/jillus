@@ -7,6 +7,12 @@ public interface Source {
 	public int available();
 	public char getchar();
 	public String gets(int len);
+	/**
+	 * The same as gets(prefix.length()).equals(prefix)
+	 * but with better performance
+	 * #6
+	 */
+	boolean startsWith(String prefix);
 
 	// move pointer
 	public void consume();

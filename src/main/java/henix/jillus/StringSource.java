@@ -41,6 +41,10 @@ public class StringSource implements Source {
 		return input.substring(pos, pos + len);
 	}
 
+	public boolean startsWith(String prefix) {
+		return input.regionMatches(pos, prefix, 0, prefix.length());
+	}
+
 	public void consume() {
 		pos++;
 	}

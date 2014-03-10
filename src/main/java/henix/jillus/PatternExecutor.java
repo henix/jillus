@@ -51,7 +51,7 @@ public class PatternExecutor {
 		} else if (e instanceof CharInRange) {
 			final CharInRange patt = (CharInRange)e;
 			if (src.canGet()) {
-				char c = src.getchar();
+				final char c = src.getchar();
 				if (c >= patt.from && c <= patt.to) {
 					src.consume();
 					return true;
@@ -64,7 +64,7 @@ public class PatternExecutor {
 		} else if (e instanceof CharInSet) {
 			final CharInSet patt = (CharInSet)e;
 			if (src.canGet()) {
-				char c = src.getchar();
+				final char c = src.getchar();
 				if (patt.str.indexOf(c) != -1) {
 					src.consume();
 					return true;
@@ -76,9 +76,10 @@ public class PatternExecutor {
 			return false;
 		} else if (e instanceof Literal) {
 			final Literal patt = (Literal)e;
-			if (src.canGet(patt.len)) {
-				if (src.gets(patt.len).equals(patt.str)) {
-					src.consume(patt.len);
+			final int len = patt.str.length();
+			if (src.canGet(len)) {
+				if (src.startsWith(patt.str)) {
+					src.consume(len);
 					return true;
 				}
 			}
