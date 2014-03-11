@@ -41,7 +41,7 @@ public class SimpleDateTest {
 
 	@Test
 	public void main() {
-		final PatternExecutor executor = new PatternExecutor(new StringSource("3001-4-1"));
+		final PatternExecutor<?> executor = new PatternExecutor(new StringSource("3001-4-1"));
 		final MyDate result = executor.execute(mydate);
 
 		Assert.assertEquals(3001, result.year);
@@ -51,7 +51,7 @@ public class SimpleDateTest {
 
 	@Test
 	public void error() {
-		final PatternExecutor executor = new PatternExecutor(new StringSource("3001+4-1"));
+		final PatternExecutor<?> executor = new PatternExecutor(new StringSource("3001+4-1"));
 		try {
 			final MyDate result = executor.execute(mydate);
 			Assert.fail("Didn't throw exception");

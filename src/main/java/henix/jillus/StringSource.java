@@ -1,13 +1,6 @@
 package henix.jillus;
 
-public class StringSource implements Source {
-
-	private static class IntMark implements Mark {
-		public final int pos;
-		public IntMark(int pos) {
-			this.pos = pos;
-		}
-	}
+public class StringSource implements Source<Integer> {
 
 	private final String input;
 
@@ -53,23 +46,21 @@ public class StringSource implements Source {
 		pos += n;
 	}
 
-	public Mark mark() {
-		return new IntMark(pos);
+	public Integer mark() {
+		return pos;
 	}
 
-	public void goback(Mark mark) {
-		final IntMark intMark = (IntMark)mark;
-		if (intMark.pos > pos) {
-			throw new IllegalArgumentException("goback can only goto previous pos: from " + pos + " can't goto " + intMark.pos);
+	public void goback(Integer mark) {
+		if (mark > pos) {
+			throw new IllegalArgumentException("goback can only goto previous pos: from " + pos + " can't goto " + mark);
 		}
-		pos = intMark.pos;
+		pos = mark;
 	}
 
-	public void cancel(Mark mark) {
+	public void cancel(Integer mark) {
 	}
 
-	public String tillNow(Mark mark) {
-		final IntMark intMark = (IntMark)mark;
-		return input.substring(intMark.pos, pos);
+	public String tillNow(Integer mark) {
+		return input.substring(mark, pos);
 	}
 }

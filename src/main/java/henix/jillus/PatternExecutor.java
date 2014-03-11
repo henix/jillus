@@ -25,11 +25,11 @@ import henix.jillus.pegs.pattern.Sequence;
 /**
  * The interpreter
  */
-public class PatternExecutor {
+public class PatternExecutor<M> {
 
-	private Source src;
+	private final Source<M> src;
 
-	public PatternExecutor(Source src) {
+	public PatternExecutor(Source<M> src) {
 		this.src = src;
 	}
 
@@ -93,7 +93,7 @@ public class PatternExecutor {
 			return true;
 		} else if (e instanceof NotPredict) {
 			final NotPredict patt = (NotPredict)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			if (!match(patt.e, false)) {
 				src.cancel(mark);
 				return true;
@@ -102,7 +102,7 @@ public class PatternExecutor {
 			return false;
 		} else if (e instanceof Sequence) {
 			final Sequence patt = (Sequence)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			for (PegPattern subpatt : patt.patts) {
 				if (!match(subpatt, mustSuccess)) {
 					src.goback(mark);
@@ -129,7 +129,7 @@ public class PatternExecutor {
 			return false;
 		} else if (e instanceof AtLeast) {
 			final AtLeast patt = (AtLeast)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			for (int i = 0; i < patt.n; i++) {
 				if (!match(patt.e, mustSuccess)) {
 					src.goback(mark);
@@ -159,7 +159,7 @@ public class PatternExecutor {
 	private <E> E execute(Capturer<E> e, boolean mustSuccess) {
 		if (e instanceof AtomicCapturer<?>) {
 			final AtomicCapturer<E> c = (AtomicCapturer<E>)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			if (match(c.e, mustSuccess)) {
 				return c.valueCreator.create(src.tillNow(mark));
 			}
@@ -167,7 +167,7 @@ public class PatternExecutor {
 			return null;
 		} else if (e instanceof PassingCapturer<?>) {
 			final PassingCapturer<E> c = (PassingCapturer<E>)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			E ret = null;
 			if (c.before != null && !match(c.before, mustSuccess)) {
 				src.goback(mark);
@@ -238,7 +238,7 @@ public class PatternExecutor {
 			return false;
 		} else if (e instanceof SequenceAttacher<?>) {
 			final SequenceAttacher<E> a = (SequenceAttacher<E>)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			for (Attacher<? super E> attacher : a.attachers) {
 				if (!execute(attacher, parentObj, mustSuccess)) {
 					src.goback(mark);
@@ -265,7 +265,7 @@ public class PatternExecutor {
 			return false;
 		} else if (e instanceof AtLeastAttacher<?>) {
 			final AtLeastAttacher<E> a = (AtLeastAttacher<E>)e;
-			final Mark mark = src.mark();
+			final M mark = src.mark();
 			for (int i = 0; i < a.n; i++) {
 				if (!execute(a.e, parentObj, mustSuccess)) {
 					src.goback(mark);

@@ -1,6 +1,6 @@
 package henix.jillus;
 
-public interface Source {
+public interface Source<M> {
 	// read
 	public boolean canGet();
 	public boolean canGet(int len);
@@ -18,9 +18,17 @@ public interface Source {
 	public void consume();
 	public void consume(int n);
 
-	// mark
-	public Mark mark();
-	public void goback(Mark mark);
-	public void cancel(Mark mark);
-	public String tillNow(Mark mark);
+	/**
+	 * A mark in source, you can either:
+	 *
+	 * 1. goback() to it only ONCE
+	 * 2. tillNow() get the string from mark to current position, only ONCE
+	 * 3. cancel it, then it become invalid, you can not use it to do 1. or 2.
+	 *
+	 * If you created a mark, one and only one of above 3 actions MUST be done on it.
+	 */
+	public M mark();
+	public void goback(M mark);
+	public void cancel(M mark);
+	public String tillNow(M mark);
 }
