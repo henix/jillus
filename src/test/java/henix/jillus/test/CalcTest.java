@@ -123,7 +123,7 @@ public class CalcTest {
 	}
 
 	static int calculate(String str) {
-		final PatternExecutor<?> executor = new PatternExecutor(new StringSource(str));
+		final PatternExecutor executor = new PatternExecutor(str);
 		return eval(executor.execute(all));
 	}
 

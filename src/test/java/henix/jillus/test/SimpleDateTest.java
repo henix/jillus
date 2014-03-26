@@ -6,7 +6,6 @@ import henix.jillus.Capturer;
 import henix.jillus.JillusSyntaxException;
 import henix.jillus.PatternExecutor;
 import henix.jillus.PegPattern;
-import henix.jillus.StringSource;
 import henix.jillus.ValueCreator;
 
 import org.hamcrest.CoreMatchers;
@@ -41,7 +40,7 @@ public class SimpleDateTest {
 
 	@Test
 	public void main() {
-		final PatternExecutor<?> executor = new PatternExecutor(new StringSource("3001-4-1"));
+		final PatternExecutor executor = new PatternExecutor("3001-4-1");
 		final MyDate result = executor.execute(mydate);
 
 		Assert.assertEquals(3001, result.year);
@@ -51,7 +50,7 @@ public class SimpleDateTest {
 
 	@Test
 	public void error() {
-		final PatternExecutor<?> executor = new PatternExecutor(new StringSource("3001+4-1"));
+		final PatternExecutor executor = new PatternExecutor("3001+4-1");
 		try {
 			final MyDate result = executor.execute(mydate);
 			Assert.fail("Didn't throw exception");

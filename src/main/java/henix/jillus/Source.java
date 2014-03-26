@@ -1,6 +1,6 @@
 package henix.jillus;
 
-public interface Source<M> {
+public interface Source {
 	// read
 	public boolean canGet();
 	public boolean canGet(int len);
@@ -27,8 +27,8 @@ public interface Source<M> {
 	 *
 	 * If you created a mark, one and only one of above 3 actions MUST be done on it.
 	 */
-	public M mark();
-	public void goback(M mark);
-	public void cancel(M mark);
-	public String tillNow(M mark);
+	public int mark();
+	public void goback(int mark);
+	public void cancel(int mark);
+	public String tillNow(int mark);
 }
